@@ -49,11 +49,9 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: conic-gradient(
-                from 0deg,
-                transparent 0deg 340deg,
-                rgba(233, 69, 96, 0.2) 360deg
-            );
+            background: conic-gradient(from 0deg,
+                    transparent 0deg 340deg,
+                    rgba(233, 69, 96, 0.2) 360deg);
             animation: rotate 8s linear infinite;
         }
 
@@ -86,11 +84,9 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(
-                circle,
-                rgba(255, 255, 255, 0.3) 0%,
-                transparent 70%
-            );
+            background: radial-gradient(circle,
+                    rgba(255, 255, 255, 0.3) 0%,
+                    transparent 70%);
             opacity: 0;
             transition: opacity 0.3s ease;
         }
@@ -134,12 +130,10 @@
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(
-                90deg,
-                transparent,
-                rgba(255, 255, 255, 0.3),
-                transparent
-            );
+            background: linear-gradient(90deg,
+                    transparent,
+                    rgba(255, 255, 255, 0.3),
+                    transparent);
             transition: 0.5s;
         }
 
@@ -252,16 +246,102 @@
                 transform: scale(1);
                 box-shadow: 0 0 0 0 rgba(233, 69, 96, 0.7);
             }
+
             100% {
                 transform: scale(1.05);
                 box-shadow: 0 0 10px 10px rgba(233, 69, 96, 0);
             }
         }
+
+        @media (max-width: 768px) {
+            #game-container {
+                padding: 20px;
+                max-width: 100%;
+            }
+
+            #slot-machine {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+                padding: 15px;
+            }
+
+            .reel {
+                width: 80px;
+                height: 80px;
+                font-size: 36px;
+            }
+
+            #controls {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            #balance,
+            #bet {
+                margin-bottom: 15px;
+            }
+
+            .bet-button {
+                margin: 5px;
+            }
+
+            #spin-button {
+                width: 100%;
+                margin-top: 15px;
+            }
+
+            .bonus-text {
+                font-size: 18px;
+            }
+
+            .bonus-button {
+                padding: 12px 24px;
+                font-size: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .reel {
+                width: 60px;
+                height: 60px;
+                font-size: 28px;
+            }
+
+            #balance,
+            #bet {
+                font-size: 18px;
+            }
+
+            .bet-button {
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+
+            #spin-button {
+                padding: 12px 24px;
+                font-size: 18px;
+            }
+
+            #message {
+                font-size: 22px;
+            }
+
+            .bonus-text {
+                font-size: 16px;
+            }
+
+            .bonus-button {
+                padding: 10px 20px;
+                font-size: 18px;
+            }
+        }
     </style>
 </head>
+
 <body>
     <div id="game-container">
         <div id="slot-machine">
+            <!-- 3x3 or 5x3 grid of reels will be generated here -->
         </div>
         <div id="controls">
             <div id="balance">Balance: $1000</div>
@@ -276,11 +356,11 @@
         <div id="message"></div>
         <div id="bonus-offer">
             <p class="bonus-text">
-                Bônus de Boas-Vindas de 100% até R$1000!<br>
+                Bônus de Boas-Vindas na PlayPix de 100% até R$1000!<br>
                 + giros grátis!
             </p>
-            <a href="https://playpix.com/affiliates/?btag=1834531_l291093" class="bonus-button">            
-                Aproveite ao Máximo!
+            <a href="https://playpix.com/affiliates/?btag=1834531_l291093" class="bonus-button">
+                Receber Agora!
             </a>
         </div>
     </div>
@@ -296,19 +376,36 @@
         let spinning = false;
         let currentBet = 10; // Default bet
 
-        // Create 5x3 grid of reels
-        for (let i = 0; i < 15; i++) {
-            const reel = document.createElement('div');
-            reel.className = 'reel';
-            reel.textContent = symbols[Math.floor(Math.random() * symbols.length)];
-            slotMachine.appendChild(reel);
+        function createReels() {
+            slotMachine.innerHTML = ''; // Clear existing reels
+            const isMobile = window.innerWidth <= 768;
+            const reelsCount = isMobile ? 9 : 15; // 3x3 for mobile, 5x3 for desktop
+
+            for (let i = 0; i < reelsCount; i++) {
+                const reel = document.createElement('div');
+                reel.className = 'reel';
+                reel.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+                slotMachine.appendChild(reel);
+            }
         }
+
+        createReels();
+
+        function handleResize() {
+            createReels();
+        }
+
+        window.addEventListener('resize', handleResize);
 
         const reels = document.querySelectorAll('.reel');
 
         function updateBalance(amount) {
             balance += amount;
             balanceDisplay.textContent = `Balance: $${balance}`;
+        }
+
+        function shouldWin() {
+            return Math.random() < 0.65; // 65% chance of winning
         }
 
         function spin() {
@@ -326,6 +423,7 @@
             messageDisplay.textContent = "Spinning...";
             messageDisplay.style.color = '#3498db';
 
+            const reels = document.querySelectorAll('.reel');
             const spinPromises = [];
 
             reels.forEach((reel, index) => {
@@ -357,38 +455,78 @@
         function checkWin(bet) {
             let totalWin = 0;
             const winningLines = [];
+            const reels = document.querySelectorAll('.reel');
+            const isMobile = reels.length === 9;
 
-            // Check rows
-            for (let i = 0; i < 3; i++) {
-                const row = Array.from(reels).slice(i * 5, (i + 1) * 5).map(reel => reel.textContent);
-                const rowWin = calculateLineWin(row, bet);
-                if (rowWin > 0) {
-                    totalWin += rowWin;
-                    winningLines.push(Array.from(reels).slice(i * 5, (i + 1) * 5));
+            if (isMobile) {
+                if (shouldWin()) {
+                    const winType = Math.random();
+                    if (winType < 0.6) {
+                        totalWin = bet * (Math.floor(Math.random() * 3) + 2); // Win 2x to 4x the bet
+                    } else if (winType < 0.9) {
+                        totalWin = bet * (Math.floor(Math.random() * 3) + 5); // Win 5x to 7x the bet
+                    } else {
+                        totalWin = bet * (Math.floor(Math.random() * 5) + 8); // Win 8x to 12x the bet
+                    }
+                    const possibleLines = [
+                        [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                        [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                        [0, 4, 8], [2, 4, 6]
+                    ];
+                    const winningLineIndices = possibleLines[Math.floor(Math.random() * possibleLines.length)];
+                    winningLines.push(winningLineIndices.map(index => reels[index]));
+                    const winningSymbol = symbols[Math.floor(Math.random() * symbols.length)];
+                    winningLineIndices.forEach(index => {
+                        reels[index].textContent = winningSymbol;
+                    });
+                    reels.forEach((reel, index) => {
+                        if (!winningLineIndices.includes(index)) {
+                            reel.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+                        }
+                    });
+                } else {
+                    const usedSymbols = new Set();
+                    reels.forEach((reel) => {
+                        let symbol;
+                        do {
+                            symbol = symbols[Math.floor(Math.random() * symbols.length)];
+                        } while (usedSymbols.size < symbols.length - 1 && usedSymbols.has(symbol));
+                        usedSymbols.add(symbol);
+                        reel.textContent = symbol;
+                    });
                 }
-            }
+            } else {
+                const rowCount = 3;
+                const colCount = 5;
 
-            // Check V-shape
-            const vShape = [reels[0], reels[6], reels[12], reels[8], reels[4]];
-            const vShapeWin = calculateLineWin(vShape.map(reel => reel.textContent), bet) * 1.5;
-            if (vShapeWin > 0) {
-                totalWin += vShapeWin;
-                winningLines.push(vShape);
-            }
+                for (let i = 0; i < rowCount; i++) {
+                    const row = Array.from(reels).slice(i * colCount, (i + 1) * colCount).map(reel => reel.textContent);
+                    const rowWin = calculateLineWin(row, bet);
+                    if (rowWin > 0) {
+                        totalWin += rowWin;
+                        winningLines.push(Array.from(reels).slice(i * colCount, (i + 1) * colCount));
+                    }
+                }
 
-            // Check Inverted V-shape
-            const invertedV = [reels[10], reels[6], reels[2], reels[8], reels[14]];
-            const invertedVWin = calculateLineWin(invertedV.map(reel => reel.textContent), bet) * 1.5;
-            if (invertedVWin > 0) {
-                totalWin += invertedVWin;
-                winningLines.push(invertedV);
-            }
+                const vShape = [reels[0], reels[6], reels[12], reels[8], reels[4]];
+                const vShapeWin = calculateLineWin(vShape.map(reel => reel.textContent), bet) * 1.5;
+                if (vShapeWin > 0) {
+                    totalWin += vShapeWin;
+                    winningLines.push(vShape);
+                }
 
-            // Check full house
-            const allSymbols = Array.from(reels).map(reel => reel.textContent);
-            if (new Set(allSymbols).size === 1) {
-                totalWin += bet * 20; // All same symbols (full house)
-                winningLines.push(Array.from(reels));
+                const invertedV = [reels[10], reels[6], reels[2], reels[8], reels[14]];
+                const invertedVWin = calculateLineWin(invertedV.map(reel => reel.textContent), bet) * 1.5;
+                if (invertedVWin > 0) {
+                    totalWin += invertedVWin;
+                    winningLines.push(invertedV);
+                }
+
+                const allSymbols = Array.from(reels).map(reel => reel.textContent);
+                if (new Set(allSymbols).size === 1) {
+                    totalWin += bet * 20; // All same symbols (full house)
+                    winningLines.push(Array.from(reels));
+                }
             }
 
             updateBalance(totalWin);
@@ -411,14 +549,10 @@
             const maxCount = Math.max(...Object.values(counts));
 
             switch (maxCount) {
-                case 5:
-                    return bet * 10; // 5 in a row
-                case 4:
-                    return bet * 5;  // 4 in a row
-                case 3:
-                    return bet * 2;  // 3 in a row
-                default:
-                    return 0;
+                case 5: return bet * 10;
+                case 4: return bet * 5;
+                case 3: return bet * 2;
+                default: return 0;
             }
         }
 
@@ -449,7 +583,6 @@
 
         spinButton.addEventListener('click', spin);
 
-        // Add some initial animation
         reels.forEach((reel, index) => {
             reel.style.transform = 'scale(0) rotate(180deg)';
             setTimeout(() => {
@@ -457,7 +590,6 @@
             }, index * 50);
         });
 
-        // Add a little sparkle to the reels on hover
         reels.forEach(reel => {
             reel.addEventListener('mouseover', () => {
                 reel.style.transform = 'scale(1.1) rotate(5deg)';
@@ -469,7 +601,6 @@
             });
         });
 
-        // Add a pulsating effect to the spin button
         setInterval(() => {
             if (!spinning) {
                 spinButton.style.transform = 'scale(1.05)';
@@ -479,8 +610,8 @@
             }
         }, 1000);
 
-        // Set the default active bet button
         document.querySelector('.bet-button[data-amount="10"]').classList.add('active');
     </script>
 </body>
+
 </html>
